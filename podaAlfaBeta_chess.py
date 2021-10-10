@@ -66,10 +66,16 @@ reiValues = [
 -30,-40,-40,-50,-50,-40,-40,-30]
 
 
+def define_player(player):
+    if player == chess.WHITE:
+        return "White"
+    else:
+        return "Black"
+
 def init_board(board):
 
     if board.is_checkmate():
-        if board.turn:
+        if board.turn:            
             return -9999
         else:
             return 9999
@@ -175,46 +181,58 @@ def selectmove(depth, board):
         if( boardValue > alpha ):
             alpha = boardValue
         board.pop()
-    return bestMove.uci()
+    return bestMove
 
 
 def selfPlay(board):
     print(board)
     print("---------------")
     print("A B C D E F G H")
-    while not board.is_game_over(claim_draw=True):
+    while not board.is_game_over():
         if board.turn:
             move = input("Enter move: ")
             move = chess.Move.from_uci(str(move))
-            board.push_uci(move.uci())
-    
+            board.push(move)
         else:
             print("Computers Turn:")
-            move = selectmove(3,board)
+            move = selectmove(1,board)
             move = chess.Move.from_uci(str(move))
             board.push(move)
         print(board)
         print("---------------")
-        print("A B C D E F G H")  
+        print("A B C D E F G H") 
+    result = None
+    if board.is_checkmate():
+        msg = "Checkmate: " + define_player(not board.turn) + " ganhou!"
+        result = not board.turn
+    elif board.is_stalemate() or board.is_fivefold_repetition() or board.is_insufficient_material() or board.can_claim_draw():
+        msg = "Empate"
+    print("Resultado Final: " + msg + "\n")
+    return (result, msg, board)
 
 def simulation(board):
-    print("A B C D E F G H")
-    print("---------------")
     print(board)
     print("---------------")
     print("A B C D E F G H")
-    while not board.is_game_over(claim_draw=True):
+    while not board.is_game_over():
         if board.turn:
             move = selectmove(3, board)
-            board.push_uci(move)       
+            board.push(move)       
         else:
             move = selectmove(3, board)
-            board.push_uci(move)
-        print("A B C D E F G H")  
-        print("---------------")
+            board.push(move)
         print(board)
         print("---------------")
-        print("A B C D E F G H")  
+        print("A B C D E F G H")
+    result = None
+    if board.is_checkmate():
+        msg = "Checkmate: " + define_player(not board.turn) + " ganhou!"
+        result = not board.turn
+    elif board.is_stalemate() or board.is_fivefold_repetition() or board.is_insufficient_material() or board.can_claim_draw():
+        msg = "Empate"
+    print("Resultado Final: " + msg + "\n")
+    return (result, msg, board)
+
 
 def main():
     board = chess.Board()
@@ -226,21 +244,24 @@ def main():
         if ans == "1":
             start = time.time()
             selfPlay(board)
-            board.reset()
             end = time.time()
             tempoFinal = end - start
             print("Tempo: ", round(tempoFinal, 2))
+            board.reset()
+
         elif ans == "2":
             start = time.time()
             simulation(board)
-            board.reset()
             end = time.time()
             tempoFinal = end - start
             print("Tempo: ", round(tempoFinal, 2))
+            board.reset()
         elif ans == "3":
             exit()
         else:
             print("Comando Inválido")
             exit()
+
+
 
 main()
